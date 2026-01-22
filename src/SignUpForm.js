@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_URL = 'http://localhost:5000/api/signup';
+const API_URL = 'https://budget-tracker-backend-zwaa.onrender.com/api/signup';
 
 function SignUpForm({ onSwitchToLogin }) {
   const [username, setUsername] = useState('');

@@ -30,8 +30,8 @@ function App() {
   const [budgetLimits, setBudgetLimits] = useState({});
   const [currency, setCurrency] = useState(localStorage.getItem('buddy_currency') || 'INR');
 
-  // ✅ FIXED: Directly pointing to Render backend (No unused variables)
-  const API_BASE = 'https://budget-tracker-backend-zwaa.onrender.com/api';
+  
+  const API_BASE = "https://budget-tracker-backend-zwaa.onrender.com/api";
 
   const getDateRangeLabel = () => {
     const now = new Date();

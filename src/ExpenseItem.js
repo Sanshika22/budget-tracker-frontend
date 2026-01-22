@@ -18,7 +18,7 @@ function ExpenseItem({ expense, onDelete, onUpdate }) {
   const [editedDate, setEditedDate] = useState(expense.date);
   const [isIncome, setIsIncome] = useState(expense.amount > 0);
   
-  const API_URL = 'http://localhost:5000/api/expenses';
+  const API_URL = 'https://budget-tracker-backend-zwaa.onrender.com/api/expenses';
 
   const handleEditSave = async () => {
     if (!editedDescription || !editedAmount || !editedCategory || !editedDate) {

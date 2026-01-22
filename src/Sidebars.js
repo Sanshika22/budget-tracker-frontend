@@ -11,7 +11,7 @@ const CategoryList = ({ onClose }) => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/categories', { credentials: 'include' });
+      const response = await fetch('https://budget-tracker-backend-zwaa.onrender.com/api/categories', { credentials: 'include' });
       const data = await response.json();
       setCategories(data);
     } catch (e) { console.error("Failed to fetch categories", e); }
@@ -19,7 +19,7 @@ const CategoryList = ({ onClose }) => {
 
   const handleAddCategory = async () => {
     if (!newCat.trim()) return;
-    await fetch('http://localhost:5000/api/categories', {
+    await fetch('https://budget-tracker-backend-zwaa.onrender.com/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newCat }),
@@ -30,7 +30,7 @@ const CategoryList = ({ onClose }) => {
   };
 
   const saveEdit = async (id) => {
-    await fetch(`http://localhost:5000/api/categories/${id}`, {
+    await fetch(`https://budget-tracker-backend-zwaa.onrender.com/api/categories/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: editValue }),
