@@ -32,8 +32,7 @@ function App() {
 
   // ✅ FIXED: Using Environment Variable for Production [cite: 2025-12-17]
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://budget-tracker-backend-zwaa.onrender.com';
-  const API_BASE = `${BACKEND_URL}/api`;
-
+ const API_BASE = 'https://budget-tracker-backend-zwaa.onrender.com/api';
   const getDateRangeLabel = () => {
     const now = new Date();
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
