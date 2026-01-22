@@ -30,9 +30,9 @@ function App() {
   const [budgetLimits, setBudgetLimits] = useState({});
   const [currency, setCurrency] = useState(localStorage.getItem('buddy_currency') || 'INR');
 
-  // ✅ FIXED: Using Environment Variable for Production [cite: 2025-12-17]
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://budget-tracker-backend-zwaa.onrender.com';
- const API_BASE = 'https://budget-tracker-backend-zwaa.onrender.com/api';
+  // ✅ FIXED: Directly pointing to Render backend (No unused variables)
+  const API_BASE = 'https://budget-tracker-backend-zwaa.onrender.com/api';
+
   const getDateRangeLabel = () => {
     const now = new Date();
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
@@ -64,7 +64,7 @@ function App() {
     localStorage.setItem('buddy_currency', newCurrency);
   };
 
-  // ✅ Sticky Data Fetching Logic [cite: 2025-12-17]
+  // ✅ Sticky Data Logic [cite: 2025-12-17]
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -95,7 +95,7 @@ function App() {
       }
       setError(null);
     } catch (e) {
-      setError("System Offline. Waiting for server to wake up...");
+      setError("System Offline. Check server connection.");
     } finally {
       setLoading(false);
     }
