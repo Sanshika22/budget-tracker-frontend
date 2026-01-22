@@ -30,8 +30,9 @@ function App() {
   const [budgetLimits, setBudgetLimits] = useState({});
   const [currency, setCurrency] = useState(localStorage.getItem('buddy_currency') || 'INR');
 
-  // Backend URL - Make sure this is active on Render
-  const API_BASE = 'https://budget-tracker-backend-zwaa.onrender.com/api';
+  // ✅ FIXED: Using Environment Variable for Production [cite: 2025-12-17]
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://budget-tracker-backend-zwaa.onrender.com';
+  const API_BASE = `${BACKEND_URL}/api`;
 
   const getDateRangeLabel = () => {
     const now = new Date();
@@ -64,7 +65,7 @@ function App() {
     localStorage.setItem('buddy_currency', newCurrency);
   };
 
-  // ✅ Optimized FetchData for Sticky Settings [cite: 2025-12-17]
+  // ✅ Sticky Data Fetching Logic [cite: 2025-12-17]
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -81,14 +82,12 @@ function App() {
       const expData = await expRes.json();
       setExpenses(expData);
 
-      // Fetch categories
       const catRes = await fetch(`${API_BASE}/categories`, { credentials: 'include' });
       if (catRes.ok) {
         const catData = await catRes.json();
         setCategories(catData.map(c => c.name)); 
       }
 
-      // Fetch sticky budget settings [cite: 2025-12-17]
       const setRes = await fetch(`${API_BASE}/settings`, { credentials: 'include' });
       if (setRes.ok) {
         const setData = await setRes.json();
@@ -161,7 +160,7 @@ function App() {
   const handleAuthSuccess = (username) => {
     setUser(username);
     setAuthMode('login'); 
-    fetchData(); // Trigger fresh fetch on login
+    fetchData(); 
   };
   
   const handleLogout = async () => {
