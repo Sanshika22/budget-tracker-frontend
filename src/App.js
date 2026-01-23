@@ -30,6 +30,7 @@ function App() {
   const [budgetLimits, setBudgetLimits] = useState({});
   const [currency, setCurrency] = useState(localStorage.getItem('buddy_currency') || 'INR');
 
+  // ✅ Online backend URL (Render deployment)
   const API_BASE = "https://budget-tracker-backend-zwaa.onrender.com/api";
 
   const getDateRangeLabel = () => {
@@ -65,28 +66,22 @@ function App() {
 
   // ✅ Sticky Data Logic
   const fetchData = useCallback(async () => {
-    if (!user) return; // Only fetch if logged in
-
     setLoading(true);
     try {
       const expRes = await fetch(`${API_BASE}/expenses`, { credentials: 'include' });
-      
-      if (expRes.status === 401) { 
-        setUser(null); 
-        setLoading(false);
-        return; 
-      }
-      
       if (!expRes.ok) throw new Error("Backend connection error");
 
       const expData = await expRes.json();
       setExpenses(expData);
 
-      const catRes = await fetch(`${API_BASE}/categories`, { credentials: 'include' });
-      if (catRes.ok) {
-        const catData = await catRes.json();
-        setCategories(catData.map(c => c.name)); 
-      }
+      // Categories fetch (optional)
+      try {
+        const catRes = await fetch(`${API_BASE}/categories`, { credentials: 'include' });
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(catData.map(c => c.name)); 
+        }
+      } catch { /* ignore categories fetch error */ }
 
       const setRes = await fetch(`${API_BASE}/settings`, { credentials: 'include' });
       if (setRes.ok) {
@@ -97,12 +92,12 @@ function App() {
 
       setError(null);
     } catch (e) {
-      console.error("Fetch data error:", e); // Real error in console
-      if (user) setError("Unable to sync data. Server may be waking up or offline.");
+      console.error("Fetch error:", e);
+      setError("System Offline. Check server connection.");
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, user]);
+  }, [API_BASE]);
 
   const saveSettingsToServer = async (newGoal, newLimits) => {
     try {
@@ -112,7 +107,7 @@ function App() {
         body: JSON.stringify({ savings_goal: newGoal, budget_limits: newLimits }),
         credentials: 'include'
       });
-    } catch (e) { console.error("Failed to save sticky settings", e); }
+    } catch (e) { console.error("Failed to save settings", e); }
   };
 
   const handleUpdateGoal = (newGoal) => {
@@ -186,13 +181,12 @@ function App() {
   };
 
   useEffect(() => { 
-    if (user) { // ❌ Only fetch if logged in
-      fetchData();
-    }
-  }, [user, fetchData]);
+    fetchData(); 
+  }, [fetchData]);
 
   return (
     <div className="App">
+      {/* Header */}
       <header className="main-header">
         {user ? (
           <>
@@ -227,6 +221,7 @@ function App() {
         )}
       </header>
       
+      {/* Auth */}
       {!user ? (
         <div className="auth-wrapper">
           <div className="auth-tabs">
@@ -239,41 +234,42 @@ function App() {
           </div>
         </div>
       ) : (
-        <main className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <main className="dashboard-content">
           {error && <div className="error-banner">{error}</div>}
-          
-          <div style={{ 
-            textAlign: 'center', margin: '20px 0', color: '#FF6600', fontSize: '15px', fontWeight: '800',
-            background: '#FFF0E6', padding: '8px 25px', borderRadius: '30px', boxShadow: '0 2px 8px rgba(255,102,0,0.1)'
-          }}>
+
+          <div style={{ textAlign:'center', margin:'20px 0', color:'#FF6600', fontSize:'15px', fontWeight:'800',
+                        background:'#FFF0E6', padding:'8px 25px', borderRadius:'30px', boxShadow:'0 2px 8px rgba(255,102,0,0.1)'}}>
             📅 {getDateRangeLabel()}
           </div>
 
-          <div className="stats-grid" style={{ width: '100%' }}>
+          {/* Stats */}
+          <div className="stats-grid" style={{ width:'100%' }}>
             <div className="stat-card income"><label>Income</label><h3>+ {formatCurrency(totalIncome)}</h3></div>
             <div className="stat-card expenses"><label>Expenses</label><h3>- {formatCurrency(totalExpenses)}</h3></div>
             <div className="stat-card balance"><label>Balance</label><h3>{formatCurrency(remainingBudget)}</h3></div>
           </div>
 
-          <div className="planning-grid" style={{ width: '100%' }}>
+          {/* Planning */}
+          <div className="planning-grid" style={{ width:'100%' }}>
             <GoalTracker goal={savingsGoal} currentSavings={remainingBudget} onUpdate={handleUpdateGoal} />
             <BudgetModule limits={budgetLimits} expenses={filteredExpenses} onUpdate={handleUpdateLimits} categories={categories} formatCurrency={formatCurrency} />
           </div>
 
-          <div className="visual-grid" style={{ width: '100%' }}>
+          {/* Charts */}
+          <div className="visual-grid" style={{ width:'100%' }}>
             <IncomeExpenseChart expenses={filteredExpenses} />
             <ExpenseChart expenses={filteredExpenses} />
           </div>
 
-          <div className="report-row" style={{ width: '100%', padding: '0 5%' }}>
+          {/* Report & Forms */}
+          <div className="report-row" style={{ width:'100%', padding:'0 5%' }}>
             <ReportGenerator expenses={filteredExpenses} totalBalance={remainingBudget} />
           </div>
-
-          <section className="form-section" style={{ width: '100%' }}>
+          <section className="form-section" style={{ width:'100%' }}>
             <AddExpenseForm onExpenseAdded={fetchData} categories={categories} /> 
           </section>
-          
-          <section className="history-section" style={{ width: '100%' }}>
+
+          <section className="history-section" style={{ width:'100%' }}>
             <h2>📜 {searchTerm ? `Search Results: ${searchTerm}` : `Transaction History (${timeFilter})`}</h2>
             {loading ? (
               <div className="loader">Updating dashboard...</div>
@@ -298,7 +294,6 @@ function App() {
       )}
 
       <LeftSidebar isOpen={leftOpen} onClose={() => setLeftOpen(false)} onViewChange={setTimeFilter} currentView={timeFilter} />
-      
       <RightSidebar 
         isOpen={rightOpen} 
         onClose={() => setRightOpen(false)} 
