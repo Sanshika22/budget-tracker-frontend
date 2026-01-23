@@ -12,6 +12,7 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState(false);
 
+  // ✅ Main API Link
   const API_URL = 'https://budget-tracker-backend-zwaa.onrender.com/api';
 
   const validateEmail = (email) => {
@@ -47,7 +48,8 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
     setMessage({ text: 'Initializing secure registration...', type: 'info' });
 
     try {
-      const response = await fetch(API_URL, {
+      // ✅ FIX: Added /signup to the URL so it reaches the correct backend route
+      const response = await fetch(`${API_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -59,8 +61,10 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
       });
 
       const data = await response.json();
+      
       if (response.ok) {
         setMessage({ text: 'Access Granted. Redirecting...', type: 'success' });
+        // Sticky login support: user is immediately logged in after registration
         setTimeout(() => onRegisterSuccess(formData.username), 1500);
       } else {
         setMessage({ text: `Protocol Error: ${data.error || 'Failed'}`, type: 'error' });
@@ -75,7 +79,6 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
   return (
     <div className="auth-full-page">
       <div className="dial-wrapper">
-        
         <div className="dial-container">
           {[...Array(60)].map((_, i) => (
             <div key={i} className="dial-bar" style={{ '--i': i }}></div>
@@ -121,7 +124,6 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
               </div>
             </div>
 
-            {/* Futuristic Strength Bar */}
             <div style={{ margin: '0 0 20px' }}>
               <div style={{ height: '2px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px' }}>
                 <div style={{ height: '100%', width: strength.width, backgroundColor: strength.color, transition: '0.6s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: `0 0 10px ${strength.color}` }} />
@@ -157,7 +159,7 @@ function RegistrationForm({ onRegisterSuccess, onSwitchToLogin }) {
           )}
 
           <p className="register-footer">
-            EXISTING MEMBER? <span onClick={onSwitchToLogin}>BYPASS TO LOGIN</span>
+            EXISTING MEMBER? <span onClick={onSwitchToLogin} style={{ cursor: 'pointer', color: '#00d2ff' }}>BYPASS TO LOGIN</span>
           </p>
         </div>
       </div>

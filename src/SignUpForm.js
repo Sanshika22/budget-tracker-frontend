@@ -1,43 +1,62 @@
 import React, { useState } from 'react';
 
-const API_URL = 'https://budget-tracker-backend-zwaa.onrender.com/api/signup';
+// Backend Base URL
+const API_URL = 'https://budget-tracker-backend-zwaa.onrender.com';
 
 function SignUpForm({ onSwitchToLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // Toggle state
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError('');
     setSuccess('');
+
+    // ✅ Password validation
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/api/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // 🔥 Important for cookies
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Sign up failed.');
       }
 
-      setSuccess('✅ Registration successful! Please proceed to login.');
+      setSuccess('✅ Registration successful! Redirecting to login...');
       setUsername('');
       setPassword('');
-      setTimeout(onSwitchToLogin, 1500); 
+
+      // ⏳ Auto switch to login
+      setTimeout(() => {
+        onSwitchToLogin();
+      }, 1500);
 
     } catch (err) {
-      console.error("Sign up error:", err);
-      setError(err.message);
+      console.error('Signup error:', err);
+      setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -45,9 +64,11 @@ function SignUpForm({ onSwitchToLogin }) {
 
   return (
     <div className="auth-container" style={styles.container}>
-      <h3 style={{ textAlign: 'center', color: '#2c3e50' }}>Register for Budget Tracker</h3>
+      <h3 style={styles.heading}>Create Your Identity</h3>
+
       <form onSubmit={handleSubmit} style={styles.form}>
-        <div className="form-group" style={styles.formGroup}>
+        {/* Username */}
+        <div style={styles.formGroup}>
           <label style={styles.label}>Username</label>
           <input
             type="text"
@@ -55,25 +76,27 @@ function SignUpForm({ onSwitchToLogin }) {
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
-            style={styles.input}
             placeholder="Choose a username"
+            style={styles.input}
           />
         </div>
 
-        <div className="form-group" style={styles.formGroup}>
+        {/* Password */}
+        <div style={styles.formGroup}>
           <label style={styles.label}>Password</label>
           <div style={styles.passwordWrapper}>
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              style={styles.input}
               placeholder="Create a password"
+              style={styles.input}
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
+              disabled={loading}
               onClick={() => setShowPassword(!showPassword)}
               style={styles.eyeButton}
             >
@@ -82,38 +105,78 @@ function SignUpForm({ onSwitchToLogin }) {
           </div>
         </div>
 
-        <button type="submit" disabled={loading} style={styles.signUpBtn}>
-          {loading ? 'Registering...' : 'Sign Up'}
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          style={styles.signUpBtn}
+        >
+          {loading ? 'Processing...' : 'Register Account'}
         </button>
 
-        {error && <p className="error-message" style={styles.error}>{error}</p>}
-        {success && <p className="success-message" style={styles.success}>{success}</p>}
+        {/* Messages */}
+        {error && <p style={styles.error}>{error}</p>}
+        {success && <p style={styles.success}>{success}</p>}
       </form>
 
+      {/* Switch to login */}
       <p style={styles.footerText}>
-        Already have an account?{' '}
-        <button type="button" onClick={onSwitchToLogin} disabled={loading} style={styles.switchBtn}>
-          Login
+        Already a member?{' '}
+        <button
+          type="button"
+          onClick={onSwitchToLogin}
+          disabled={loading}
+          style={styles.switchBtn}
+        >
+          Login here
         </button>
       </p>
     </div>
   );
 }
 
+/* 🎨 Styles */
 const styles = {
-  container: { padding: '20px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px' },
-  formGroup: { display: 'flex', flexDirection: 'column', gap: '5px' },
-  label: { fontSize: '0.9rem', fontWeight: '600', color: '#34495e' },
-  passwordWrapper: { position: 'relative', display: 'flex', alignItems: 'center' },
-  input: { 
-    width: '100%', 
-    padding: '12px', 
-    paddingRight: '45px', 
-    borderRadius: '8px', 
-    border: '1px solid #ddd', 
+  container: {
+    padding: '30px',
+    backgroundColor: '#ffffff',
+    borderRadius: '15px',
+    boxShadow: '0 10px 25px rgba(0,0,0,0.05)',
+  },
+  heading: {
+    textAlign: 'center',
+    color: '#2c3e50',
+    marginBottom: '20px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+  },
+  formGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+  },
+  label: {
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    color: '#34495e',
+  },
+  passwordWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    padding: '12px',
+    paddingRight: '45px',
+    borderRadius: '8px',
+    border: '1px solid #dfe6e9',
     fontSize: '1rem',
-    boxSizing: 'border-box'
+    outline: 'none',
+    boxSizing: 'border-box',
   },
   eyeButton: {
     position: 'absolute',
@@ -122,22 +185,34 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     fontSize: '1.2rem',
-    color: '#7f8c8d'
   },
   signUpBtn: {
     padding: '12px',
-    backgroundColor: '#2ecc71', // Green for sign-up
-    color: 'white',
+    backgroundColor: '#2ecc71',
+    color: '#ffffff',
     border: 'none',
     borderRadius: '8px',
     fontWeight: 'bold',
-    cursor: 'pointer',
     fontSize: '1rem',
-    marginTop: '10px'
+    cursor: 'pointer',
+    marginTop: '10px',
   },
-  error: { color: '#e74c3c', fontSize: '0.85rem', textAlign: 'center', marginTop: '5px' },
-  success: { color: '#27ae60', fontSize: '0.85rem', textAlign: 'center', marginTop: '5px' },
-  footerText: { textAlign: 'center', marginTop: '20px', fontSize: '0.9rem', color: '#7f8c8d' },
+  error: {
+    color: '#e74c3c',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+  },
+  success: {
+    color: '#27ae60',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+  },
+  footerText: {
+    textAlign: 'center',
+    marginTop: '20px',
+    fontSize: '0.9rem',
+    color: '#636e72',
+  },
   switchBtn: {
     background: 'none',
     border: 'none',
@@ -145,8 +220,7 @@ const styles = {
     textDecoration: 'underline',
     cursor: 'pointer',
     fontWeight: '600',
-    padding: 0
-  }
+  },
 };
 
 export default SignUpForm;
