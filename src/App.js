@@ -30,9 +30,7 @@ function App() {
   const [budgetLimits, setBudgetLimits] = useState({});
   const [currency, setCurrency] = useState(localStorage.getItem('buddy_currency') || 'INR');
 
-  
   const API_BASE = "https://budget-tracker-backend-zwaa.onrender.com/api";
-  
 
   const getDateRangeLabel = () => {
     const now = new Date();
@@ -65,8 +63,10 @@ function App() {
     localStorage.setItem('buddy_currency', newCurrency);
   };
 
-  // ✅ Sticky Data Logic [cite: 2025-12-17]
+  // ✅ Sticky Data Logic
   const fetchData = useCallback(async () => {
+    if (!user) return; // Only fetch if logged in
+
     setLoading(true);
     try {
       const expRes = await fetch(`${API_BASE}/expenses`, { credentials: 'include' });
@@ -94,13 +94,15 @@ function App() {
         setSavingsGoal(setData.savings_goal ?? 0);
         setBudgetLimits(setData.budget_limits ?? {});
       }
+
       setError(null);
     } catch (e) {
-      setError("System Offline. Check server connection.");
+      console.error("Fetch data error:", e); // Real error in console
+      if (user) setError("Unable to sync data. Server may be waking up or offline.");
     } finally {
       setLoading(false);
     }
-  }, [API_BASE]);
+  }, [API_BASE, user]);
 
   const saveSettingsToServer = async (newGoal, newLimits) => {
     try {
@@ -184,8 +186,10 @@ function App() {
   };
 
   useEffect(() => { 
-    fetchData(); 
-  }, [fetchData]);
+    if (user) { // ❌ Only fetch if logged in
+      fetchData();
+    }
+  }, [user, fetchData]);
 
   return (
     <div className="App">
